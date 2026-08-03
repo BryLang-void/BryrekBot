@@ -14,12 +14,11 @@ Bot de Telegram impulsado por Inteligencia Artificial (Llama 3.3 vía Groq), con
 * **Patrón Repository & Service:** Código limpio y modular separando la lógica de acceso a datos de la lógica del bot.
 
 ## Tecnologias
-* **Lenguaje:** Python
+* **Lenguaje:** Python 3.10+
 * **Framework Backend:** FastAPI & Aiogram
 * **Base de Datos:** PostgreSQL (Neon) & Redis
 * **IA:** Groq API (Llama-3.3-70b-versatile)
 * **Editor:** Neovim
-* **Sistema:** Void Linux
 
 ---
 
@@ -29,3 +28,65 @@ Antes de ejecutar el proyecto, debes crear un archivo `.env` basado en el archiv
 
 ```bash
 cp .env.example .env
+```
+
+Configura las siguientes variables en tu `.env`:
+
+* `TELEGRAM_TOKEN`: Token otorgado por [@BotFather](https://t.me/BotFather).
+* `WEBHOOK_URL`: URL pública HTTPS de tu servidor (p. ej., utilizando Ngrok o un VPS).
+* `HOST`: Dirección IP donde correrá FastAPI (ej. `0.0.0.0`).
+* `PORT`: Puerto de ejecución (ej. `8080`).
+* `REDIS_URL`: URL de conexión a tu instancia de Redis (compatible con `rediss://`).
+* `DB_URL`: String de conexión PostgreSQL con driver `asyncpg`.
+* `GROQ_API_KEY`: Tu API Key obtenida de la consola de Groq.
+
+---
+
+## Como ejecutar
+
+### descargar repositorio:
+para descargar este repositorio deberás tener instalado git, puedes instalarlo asi:
+* **Android:** ``pkg install git``
+* **IOS:** ``apk add git``
+* **MacOS:** ``xcode-select --install``
+* **Windows:** abre terminal de administrador y ejecuta ``winget install --id Git.Git -e --silent``
+* **Linux:** usa el gestor de paquetes de tu distribucion y descarga **git**
+* *en el sistema en el que estés ejecuta estos comandos:*
+```bash
+git clone https://github.com/TuUsuario/BryrekBot.git
+cd BryrekBot
+```
+
+### crear entorno virtual e instalar dependencias:
+para instalar lo necesario ejecuta los siguientes comandos dependiendo tu sistema:
+
+* **Linux / MacOS / Android (Termux):**
+```bash
+python3 -m venv env
+source env/bin/activate
+pip install -r requirements.txt
+```
+
+* **Windows:**
+```powershell
+python -m venv env
+.\env\Scripts\Activate.ps1
+pip install -r requirements.txt
+```
+
+### ejecutar:
+para levantar el servidor de FastAPI junto con el bot de Telegram ejecutando Webhooks:
+
+* **Linux / MacOS / Android:**
+```bash
+source env/bin/activate
+python3 main.py
+```
+
+* **Windows:**
+```powershell
+.\env\Scripts\Activate.ps1
+python main.py
+```
+
+* **NOTA:** Al iniciar, el servidor creará automáticamente las tablas en PostgreSQL si no existen y registrará la `WEBHOOK_URL` en Telegram. Puedes verificar que el servidor está activo ingresando a `http://localhost:8080/`.
