@@ -62,7 +62,6 @@ async def cmd_start(message: Message, db: AsyncSession, state: FSMContext):
         telegram_id=tg_user.id,
         username=tg_user.username,
         first_name=tg_user.first_name,
-        last_name=tg_user.last_name
     )
 
     await message.answer(
