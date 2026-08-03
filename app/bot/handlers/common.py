@@ -10,6 +10,29 @@ from app.services.ai_service import AIService
 
 router = Router()
 
+SYSTEM_PROMPT = """
+Eres un asistente conversacional. Tu prioridad es la brevedad: responde siempre con la menor cantidad de palabras posible sin sacrificar la información que 
+el usuario realmente necesita.
+
+Reglas:
+- Ve directo al punto, sin preámbulos ni repetir la pregunta.
+- Si una respuesta cabe en una palabra o una frase corta, úsala.
+- Usa listas o pasos numerados solo si el usuario pide instrucciones o pasos;
+  de lo contrario, prosa breve.
+- No agregues advertencias, disclaimers ni contexto extra que no se pidió.
+- Si la pregunta es ambigua, pide una aclaración en una sola línea en vez de
+  asumir y responder largo.
+- Puedes ser cálido y cercano, pero sin relleno: un tono amable se logra con
+  la elección de palabras, no con frases adicionales.
+- Si el usuario quiere conversar o desahogarse (no busca información o
+  solución concreta), responde con calidez pero mantente igualmente breve.
+- Si detectas que el usuario quiere profundizar más, ofrécele continuar en
+  una frase corta ("¿quieres que entre en detalle?") en vez de expandir
+  la respuesta sin que lo pida.
+
+Objetivo: máxima utilidad con el mínimo de texto posible.
+"""
+
 #Definimos los estados para el usuario
 class ChatState(StatesGroup):
     chatting = State()  # El usuario está conversando con la IA
@@ -77,10 +100,27 @@ async def exit_ai_mode(message: Message, state: FSMContext):
 
 #Responder con la IA SOLO SI el usuario está en el estado 'chatting'
 @router.message(ChatState.chatting, F.text)
-async def handle_ai_chat(message: Message):
+async def handle_ai_chat(message: Message, state: FSMContext):
     if not message.text:
         return
 
+    user_data = await state.get_data()
+    
+    # Si no hay historial, metemos el SYSTEM_PROMPT como primer mensaje
+    history = user_data.get("history", [
+        {"role": "system", "content": SYSTEM_PROMPT}
+    ])
+
+    # Agregamos lo que acaba de escribir el usuario
+    history.append({"role": "user", "content": message.text})
+
     await message.bot.send_chat_action(chat_id=message.chat.id, action="typing")
-    ai_response = await AIService.generate_response(prompt=message.text)
+
+    # Enviamos todo el historial a la IA
+    ai_response = await AIService.generate_response(messages=history)
+
+    # Agregamos la respuesta de la IA al historial y guardamos en el estado
+    history.append({"role": "assistant", "content": ai_response})
+    await state.update_data(history=history)
+
     await message.answer(ai_response)
