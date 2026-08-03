@@ -1,12 +1,10 @@
+from typing import List, Dict
 from groq import AsyncGroq
 from app.config import settings
 
-class AIService:
-    client = AsyncGroq(api_key=settings.GROQ_API_KEY)
-
-    @staticmethod
-    async def generate_response(prompt: str, system_instruction: str = """
-    Eres un asistente conversacional. Tu prioridad es la brevedad: responde siempre con la menor cantidad de palabras posible sin sacrificar la información que 
+# Guardamos tu prompt como una constante limpia para no ensuciar el código
+SYSTEM_PROMPT = """
+Eres un asistente conversacional. Tu prioridad es la brevedad: responde siempre con la menor cantidad de palabras posible sin sacrificar la información que 
 el usuario realmente necesita.
 
 Reglas:
@@ -26,14 +24,17 @@ Reglas:
   la respuesta sin que lo pida.
 
 Objetivo: máxima utilidad con el mínimo de texto posible.
-    """) -> str:
-        # Petición asíncrona a la API de Groq
+"""
+
+class AIService:
+    client = AsyncGroq(api_key=settings.GROQ_API_KEY)
+
+    @staticmethod
+    async def generate_response(messages: List[Dict[str, str]]) -> str:
+        # Petición asíncrona enviando todo el historial
         response = await AIService.client.chat.completions.create(
             model="llama-3.3-70b-versatile",
-            messages=[
-                {"role": "system", "content": system_instruction},
-                {"role": "user", "content": prompt}
-            ],
+            messages=messages,
             temperature=0.7,
             max_tokens=1024,
         )
